@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ELM.08 - Trenażer Egzaminacyjny | Eksploatacja i programowanie systemów robotyki</title>
+  <meta name="description" content="Interaktywny trenażer do egzaminu zawodowego ELM.08 Technik Robotyk. Egzamin próbny 40 pytań oraz trening pojedynczych pytań z natychmiastowym wyjaśnieniem.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+            <circle cx="12" cy="5" r="2"></circle>
+            <path d="M12 7v4"></path>
+            <line x1="8" y1="16" x2="8" y2="16"></line>
+            <line x1="16" y1="16" x2="16" y2="16"></line>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>ELM.08 <span class="badge-accent">TRENAŻER</span></h1>
+          <p>Eksploatacja i programowanie systemów robotyki • Technik Robotyk</p>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" role="tablist">
+        <button class="nav-tab active" data-tab="training" id="tab-btn-training" role="tab" aria-selected="true">
+          <span class="tab-icon">🎯</span>
+          <span>Trening (Jedno pytanie)</span>
+        </button>
+        <button class="nav-tab" data-tab="exam" id="tab-btn-exam" role="tab" aria-selected="false">
+          <span class="tab-icon">📋</span>
+          <span>Egzamin (40 pytań)</span>
+        </button>
+        <button class="nav-tab" data-tab="browser" id="tab-btn-browser" role="tab" aria-selected="false">
+          <span class="tab-icon">📚</span>
+          <span>Baza pytań</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-container">
+
+    <!-- ==================== TAB 1: TRENING (POJEDYNCZE PYTANIA) ==================== -->
+    <section id="view-training" class="tab-view active">
+      <div class="panel-header">
+        <div class="panel-controls">
+          <div class="control-group">
+            <label for="training-category-select">Kategoria pytań:</label>
+            <select id="training-category-select" class="select-input">
+              <option value="ALL">Wszystkie kategorie (pełna pula)</option>
+              <!-- Options populated dynamically -->
+            </select>
+          </div>
+          <button id="btn-reset-training-pool" class="btn btn-secondary btn-sm" title="Zresetuj pulę i zacznij od początku">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Resetuj pulę
+          </button>
+        </div>
+
+        <div class="training-stats-bar">
+          <div class="stat-pill">
+            <span class="stat-label">Pozostało w puli:</span>
+            <span class="stat-val" id="stat-training-remaining">--</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">Przerobione:</span>
+            <span class="stat-val" id="stat-training-done">0</span>
+          </div>
+          <div class="stat-pill success">
+            <span class="stat-label">Poprawne:</span>
+            <span class="stat-val" id="stat-training-correct">0</span>
+          </div>
+          <div class="stat-pill danger">
+            <span class="stat-label">Błędy:</span>
+            <span class="stat-val" id="stat-training-wrong">0</span>
+          </div>
+          <div class="stat-pill accent">
+            <span class="stat-label">Skuteczność:</span>
+            <span class="stat-val" id="stat-training-accuracy">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Question Card -->
+      <div class="question-card" id="training-card">
+        <div class="card-meta">
+          <span class="category-badge" id="training-category-badge">BHP i procedury</span>
+          <span class="question-counter" id="training-counter">Pytanie w sesji: 1</span>
+        </div>
+
+        <div class="question-text" id="training-question-text">
+          Wczytywanie pytania...
+        </div>
+
+        <div class="answers-grid" id="training-answers-grid">
+          <!-- Answer buttons injected via JS -->
+        </div>
+
+        <!-- Explanation Container (revealed on answer) -->
+        <div class="explanation-box" id="training-explanation" style="display: none;">
+          <div class="explanation-header">
+            <span class="explanation-icon" id="explanation-status-icon">💡</span>
+            <span class="explanation-title" id="explanation-status-title">Wyjaśnienie merytoryczne</span>
+          </div>
+          <p class="explanation-content" id="training-explanation-text"></p>
+        </div>
+
+        <!-- Training Navigation / Next Button -->
+        <div class="card-footer">
+          <div class="keyboard-tip">
+            Wskazówka: Użyj klawiszy <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> aby wybrać odpowiedź, a <kbd>Spacja</kbd> lub <kbd>Enter</kbd> aby przejść dalej.
+          </div>
+          <button id="btn-next-training" class="btn btn-primary btn-lg" disabled>
+            <span>Kolejne pytanie</span>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pool Finished Message (Hidden by default) -->
+      <div class="pool-finished-card" id="training-finished-card" style="display: none;">
+        <div class="finished-icon">🏆</div>
+        <h2>Świetna robota! Pula pytań została wyczerpana.</h2>
+        <p>Przerobiłeś wszystkie pytania bez powtórzeń w wybranej kategorii.</p>
+        <div class="finished-summary" id="training-finished-summary"></div>
+        <div class="finished-actions">
+          <button class="btn btn-primary btn-lg" id="btn-restart-pool">
+            <span>Rozpocznij od nowa (Reset puli)</span>
+          </button>
+          <button class="btn btn-secondary btn-lg" id="btn-switch-to-exam">
+            <span>Przejdź do Egzaminu 40 pytań</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: EGZAMIN (40 PYTAŃ) ==================== -->
+    <section id="view-exam" class="tab-view">
+      <!-- 2A. Exam Intro / Setup Screen -->
+      <div id="exam-intro-screen" class="exam-intro-card">
+        <div class="intro-header">
+          <div class="intro-badge">OFICJALNY STANDARD CKE</div>
+          <h2>Egzamin Teoretyczny Próbny (40 pytań)</h2>
+          <p>Symulacja części pisemnej/teoretycznej egzaminu zawodowego dla kwalifikacji <strong>ELM.08</strong>.</p>
+        </div>
+
+        <div class="exam-rules-grid">
+          <div class="rule-card">
+            <div class="rule-icon">❓</div>
+            <div class="rule-content">
+              <h3>40 pytań</h3>
+              <p>Losowanych z pełnej bazy arkuszy bez powtórzeń ze wszystkich dziedzin.</p>
+            </div>
+          </div>
+          <div class="rule-card">
+            <div class="rule-icon">⏱️</div>
+            <div class="rule-content">
+              <h3>60 minut</h3>
+              <p>Rzeczywisty czas egzaminacyjny z odliczaniem zegara na żywo.</p>
+            </div>
+          </div>
+          <div class="rule-card">
+            <div class="rule-icon">🎯</div>
+            <div class="rule-content">
+              <h3>Próg 50%</h3>
+              <p>Do zdania egzaminu wymagane jest minimum <strong>20 poprawnych odpowiedzi</strong>.</p>
+            </div>
+          </div>
+          <div class="rule-card">
+            <div class="rule-icon">📊</div>
+            <div class="rule-content">
+              <h3>Szczegółowy raport</h3>
+              <p>Po zakończeniu otrzymasz analizę błędów, punktację i wyjaśnienia do każdego zadania.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="intro-action">
+          <button id="btn-start-exam" class="btn btn-primary btn-xl">
+            <span>Rozpocznij Egzamin Próbny</span>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2B. Exam Active Screen -->
+      <div id="exam-active-screen" style="display: none;">
+        <!-- Exam Status Bar -->
+        <div class="exam-top-bar">
+          <div class="exam-progress-indicator">
+            <span class="exam-label">Postęp:</span>
+            <span class="exam-curr-num" id="exam-progress-text">1 z 40</span>
+            <div class="progress-track">
+              <div class="progress-fill" id="exam-progress-fill" style="width: 2.5%;"></div>
+            </div>
+          </div>
+
+          <div class="exam-timer" id="exam-timer">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span id="exam-time-left">60:00</span>
+          </div>
+
+          <button id="btn-finish-exam-early" class="btn btn-danger btn-sm">
+            <span>Zakończ egzamin</span>
+          </button>
+        </div>
+
+        <!-- Question Navigation Grid (1 to 40) -->
+        <div class="exam-navigator-container">
+          <div class="nav-grid-header">
+            <span>Arkusz odpowiedzi (kliknij aby przejść do pytania):</span>
+            <div class="nav-legend">
+              <span class="legend-item"><span class="legend-box answered"></span> Udzielona</span>
+              <span class="legend-item"><span class="legend-box current"></span> Aktualne</span>
+              <span class="legend-item"><span class="legend-box empty"></span> Brak</span>
+            </div>
+          </div>
+          <div class="exam-questions-grid" id="exam-questions-grid">
+            <!-- 40 buttons injected via JS -->
+          </div>
+        </div>
+
+        <!-- Exam Active Question Card -->
+        <div class="question-card" id="exam-question-card">
+          <div class="card-meta">
+            <span class="category-badge" id="exam-category-badge">BHP i procedury</span>
+            <span class="question-counter" id="exam-question-counter">Pytanie 1 / 40</span>
+          </div>
+
+          <div class="question-text" id="exam-question-text">
+            Pytanie...
+          </div>
+
+          <div class="answers-grid" id="exam-answers-grid">
+            <!-- Answer buttons injected via JS -->
+          </div>
+
+          <div class="card-footer exam-footer">
+            <button id="btn-exam-prev" class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              <span>Poprzednie</span>
+            </button>
+            <div class="exam-nav-middle">
+              <span id="exam-answered-count-tip">Udzielono odpowiedzi: 0 / 40</span>
+            </div>
+            <button id="btn-exam-next" class="btn btn-secondary">
+              <span>Następne</span>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2C. Exam Result Screen -->
+      <div id="exam-result-screen" class="exam-results-container" style="display: none;">
+        <div class="result-hero-card" id="result-hero-card">
+          <div class="result-badge-container">
+            <div class="result-status-badge" id="result-status-badge">ZDANY</div>
+          </div>
+          <h2 id="result-title">Gratulacje! Twój wynik: 34 / 40 (85%)</h2>
+          <p id="result-subtitle">Egzamin został zaliczony zgodnie z kryteriami CKE (próg min. 50%).</p>
+
+          <div class="result-stats-row">
+            <div class="result-stat-box">
+              <span class="stat-number" id="res-score">34 / 40</span>
+              <span class="stat-desc">Punkty ogółem</span>
+            </div>
+            <div class="result-stat-box">
+              <span class="stat-number" id="res-percent">85%</span>
+              <span class="stat-desc">Wynik procentowy</span>
+            </div>
+            <div class="result-stat-box">
+              <span class="stat-number" id="res-time">24:15</span>
+              <span class="stat-desc">Czas rozwiązania</span>
+            </div>
+            <div class="result-stat-box">
+              <span class="stat-number" id="res-status-icon">✅</span>
+              <span class="stat-desc" id="res-verdict-text">Wynik pozytywny</span>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button id="btn-restart-exam" class="btn btn-primary btn-lg">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>Rozpocznij nowy zestaw 40 pytań</span>
+            </button>
+            <button id="btn-practice-mistakes" class="btn btn-secondary btn-lg" style="display: none;">
+              <span>Przećwicz błędne odpowiedzi w treningu</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="categories-analysis-card">
+          <h3>Wyniki w poszczególnych działach tematycznych:</h3>
+          <div class="category-breakdown-list" id="category-breakdown-list">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Detailed Review Accordion -->
+        <div class="review-section">
+          <div class="review-header">
+            <h3>Szczegółowy przegląd odpowiedzi (40 pytań):</h3>
+            <div class="review-filters">
+              <button class="btn btn-sm btn-filter active" data-filter="all">Wszystkie (40)</button>
+              <button class="btn btn-sm btn-filter" data-filter="wrong">Tylko błędne (<span id="count-wrong-review">0</span>)</button>
+              <button class="btn btn-sm btn-filter" data-filter="correct">Tylko poprawne (<span id="count-correct-review">0</span>)</button>
+            </div>
+          </div>
+
+          <div class="review-items-container" id="review-items-container">
+            <!-- Review cards injected via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: BAZA PYTAŃ ==================== -->
+    <section id="view-browser" class="tab-view">
+      <div class="browser-header">
+        <div class="browser-search-bar">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="browser-search-input" placeholder="Szukaj w pytaniach i wyjaśnieniach (np. UFRAME, PNP, E-STOP, PLC)...">
+          </div>
+          <select id="browser-category-filter" class="select-input">
+            <option value="ALL">Wszystkie działy</option>
+            <!-- Injected dynamically -->
+          </select>
+        </div>
+        <div class="browser-count" id="browser-count-text">
+          Łącznie pytań w bazie: 80
+        </div>
+      </div>
+
+      <div class="browser-cards-grid" id="browser-cards-grid">
+        <!-- Question cards injected via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>ELM.08 Eksploatacja i programowanie systemów robotyki • Opracowano na podstawie oficjalnych arkuszy CKE (101÷112)</p>
+    </div>
+  </footer>
+
+  <!-- Scripts: Fallback data for file:// access, then main application logic -->
+  <script src="questions-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
